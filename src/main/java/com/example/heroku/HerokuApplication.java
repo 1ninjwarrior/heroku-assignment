@@ -15,7 +15,10 @@
  */
 
 package com.example.heroku;
-
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PostMapping;
+import java.sql.PreparedStatement;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,25 +71,39 @@ public class HerokuApplication {
 
   @RequestMapping("/db")
   String db(Map<String, Object> model) {
-    try (Connection connection = dataSource.getConnection()) {
-      Statement stmt = connection.createStatement();
-      stmt.executeUpdate("CREATE TABLE IF NOT EXISTS table_timestamp_and_random_string (tick timestamp, random_string varchar(30))");
-      stmt.executeUpdate("INSERT INTO table_timestamp_and_random_string VALUES (now(), '" + getRandomString() + "')");      
-      ResultSet rs = stmt.executeQuery("SELECT * FROM table_timestamp_and_random_string");
+      try (Connection connection = dataSource.getConnection()) {
+          Statement stmt = connection.createStatement();
+          ResultSet rs = stmt.executeQuery("SELECT * FROM table_timestamp_and_random_string");
 
-      ArrayList<String> output = new ArrayList<String>();
-      while (rs.next()) {
-        output.add("Read from DB: " + rs.getTimestamp("tick") + " " + rs.getString("random_string"));
+          ArrayList<String> output = new ArrayList<String>();
+          while (rs.next()) {
+              output.add("Read from DB: " + rs.getTimestamp("tick") + " " + rs.getString("random_string"));
+          }
+
+          model.put("records", output);
+          return "db";
+      } catch (Exception e) {
+          model.put("message", e.getMessage());
+          return "error";
       }
-      System.out.println("Jaden Dawdy");
-      model.put("records", output);
-      return "db";
-    } catch (Exception e) {
-      model.put("message", e.getMessage());
-      return "error";
-    }
   }
-
+  @RequestMapping("/dbinput")
+  public String dbInputForm(Model model) {
+      model.addAttribute("inputString", "");
+      return "dbinput";
+  }
+  
+  @PostMapping("/dbinput")
+  public String dbInputSubmit(@RequestParam("value") String inputString) {
+      try (Connection connection = dataSource.getConnection()) {
+          PreparedStatement stmt = connection.prepareStatement("INSERT INTO table_timestamp_and_random_string VALUES (now(), ?)");
+          stmt.setString(1, inputString);
+          stmt.executeUpdate();
+      } catch (Exception e) {
+          // handle exception
+      }
+      return "redirect:/db";
+  }
   @Bean
   public DataSource dataSource() throws SQLException {
     if (dbUrl == null || dbUrl.isEmpty()) {
