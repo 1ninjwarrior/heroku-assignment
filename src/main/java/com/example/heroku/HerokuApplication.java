@@ -25,7 +25,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-
+import java.util.Random;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -54,7 +54,16 @@ public class HerokuApplication {
   }
 
   public String getRandomString() {
-    return UUID.randomUUID().toString().replace("-", "");
+    int length = 10;
+    String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    Random random = new Random();
+    StringBuilder sb = new StringBuilder(length);
+
+    for (int i = 0; i < length; i++) {
+        sb.append(characters.charAt(random.nextInt(characters.length())));
+    }
+
+    return sb.toString();
 }
 
   @RequestMapping("/db")
