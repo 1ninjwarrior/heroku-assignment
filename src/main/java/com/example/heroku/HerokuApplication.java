@@ -74,7 +74,7 @@ public class HerokuApplication {
       try (Connection connection = dataSource.getConnection()) {
           Statement stmt = connection.createStatement();
           ResultSet rs = stmt.executeQuery("SELECT * FROM table_timestamp_and_random_string");
-
+          System.err.println("Jaden Dawdy printed this to console");
           ArrayList<String> output = new ArrayList<String>();
           while (rs.next()) {
               output.add("Read from DB: " + rs.getTimestamp("tick") + " " + rs.getString("random_string"));
